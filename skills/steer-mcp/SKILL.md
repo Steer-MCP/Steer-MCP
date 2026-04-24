@@ -12,7 +12,7 @@ Paste `https://app.steerai.ca/api/mcp` into **Settings → Connectors → Add cu
 
 ---
 
-## OpwnClaw, Claude Code, Cursor, OpenCode, and other CLI agents
+## OpenClaw, Claude Code, Cursor, OpenCode, and other CLI agents
 
 Paste this prompt into your agent to get set up:
 
