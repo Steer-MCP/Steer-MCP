@@ -32,8 +32,8 @@ Steer is a relationship-intelligence API exposed as an MCP server
 Tools across three groups:
 
 - **System** — `initialize`, `usage`, `version`
-- **Relationship Intelligence** (read-only) — `ask_steer`, `person_search`, `person_view`, `person_path`
-- **Relationship Management** (read & write) — `relationship_search`, `relationship_view`, `relationship_add`, `relationship_edit`, `relationship_remove`, `groups_view`, `groups_add`, `groups_edit`, `groups_remove`, `follow_view`, `follow_add`, `follow_remove`, `profile_view`, `profile_edit`, `person_add`
+- **Relationship Intelligence** `ask_steer`, `person_search`, `person_view`, `person_add`, `person_path`
+- **Relationship Management** `relationship_search`, `relationship_view`, `relationship_add`, `relationship_edit`, `relationship_remove`, `groups_view`, `groups_add`, `groups_edit`, `groups_remove`, `follow_view`, `follow_add`, `follow_remove`, `profile_view`, `profile_edit`
 
 Every request is a JSON-RPC 2.0 call to a single endpoint. A session ID is issued on `initialize` and required on every subsequent call.
 
