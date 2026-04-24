@@ -16,22 +16,24 @@ Steer is a relationship-intelligence API exposed as an MCP server
    2.3 Keeping this file up to date
 3. Tools
    3.1 initialize
-   3.2 user — usage, update
-   3.3 ask_steer
-   3.4 person — search, view, add, path
-   3.5 relationship — search, view, add, edit, remove, group
-   3.6 profile — view, edit
-   3.7 follow — view, add, remove
+   3.2 usage
+   3.3 version
+   3.4 ask_steer
+   3.5 person_search, person_view, person_add, person_path
+   3.6 relationship_search, relationship_view, relationship_add, relationship_edit, relationship_remove
+   3.7 groups_view, groups_add, groups_edit, groups_remove
+   3.8 profile_view, profile_edit
+   3.9 follow_view, follow_add, follow_remove
 4. Tool-chain cheat sheet
 
 
 ## 1. What this is
 
-Seven tools across three groups:
+Tools across three groups:
 
-- **System** — `initialize`, `user`
-- **Relationship Intelligence** (read-only) — `ask_steer`, `person`
-- **Relationship Management** (read & write) — `relationship`, `follow`, `profile`
+- **System** — `initialize`, `usage`, `version`
+- **Relationship Intelligence** (read-only) — `ask_steer`, `person_search`, `person_view`, `person_add`, `person_path`
+- **Relationship Management** (read & write) — `relationship_search`, `relationship_view`, `relationship_add`, `relationship_edit`, `relationship_remove`, `groups_view`, `groups_add`, `groups_edit`, `groups_remove`, `follow_view`, `follow_add`, `follow_remove`, `profile_view`, `profile_edit`
 
 Every request is a JSON-RPC 2.0 call to a single endpoint. A session ID is issued on `initialize` and required on every subsequent call.
 
@@ -111,11 +113,11 @@ curl -N -X POST https://app.steerai.ca/api/mcp \
 
 **On every `initialize` call**, check `result.serverInfo.version` in the response:
 
-- If this file has no recorded version, or if the recorded version differs from `serverInfo.version`: tell the user the server is now on version `{serverInfo.version}` and that their SKILL.md is out of date, then call `{ "name": "user", "arguments": { "action": "update" } }` to fetch a fresh copy and replace this file before continuing.
+- If this file has no recorded version, or if the recorded version differs from `serverInfo.version`: tell the user the server is now on version `{serverInfo.version}` and that their SKILL.md is out of date, then call `{ "name": "version", "arguments": {} }` to fetch a fresh copy and replace this file before continuing.
 - If the versions match: proceed normally.
 
 ```
-Current version: 1.2.3
+Current version: 1.3.0
 ```
 
 After replacing the file, re-read it before proceeding.
@@ -135,8 +137,6 @@ Every tool call uses this envelope:
 }
 ```
 
-Tools that support multiple operations take an `action` field inside `arguments`.
-
 ---
 
 ### 3.1 `initialize`
@@ -152,7 +152,7 @@ Example response (note: `initialize` has no `structuredContent` — the whole `r
   "result": {
     "protocolVersion": "2024-11-05",
     "capabilities": { "tools": {} },
-    "serverInfo": { "name": "steer-mcp", "version": "1.0.0" }
+    "serverInfo": { "name": "steer-mcp", "version": "1.3.0" }
   }
 }
 ```
@@ -161,16 +161,12 @@ All subsequent tool calls return the envelope `{ jsonrpc, id, result: { content,
 
 ---
 
-### 3.2 `user`
-
-Account utility actions.
-
-#### `action: "usage"`
+### 3.2 `usage`
 
 Report remaining capacity in the current period and week windows. Does not modify anything.
 
 ```json
-{ "name": "user", "arguments": { "action": "usage" } }
+{ "name": "usage", "arguments": {} }
 ```
 
 Example response (`structuredContent`):
@@ -183,17 +179,19 @@ Example response (`structuredContent`):
   },
   "app": {
     "period": { "remaining": 88, "reset_at": "2026-04-21T18:00:00.000Z" },
-    "week":   { "remaining": 90, "follow_count": 3, "reset_at": "2026-04-27T00:00:00.000Z" }
+    "week":   { "remaining": 90, "reset_at": "2026-04-27T00:00:00.000Z" }
   }
 }
 ```
 
-#### `action: "update"`
+---
 
-Fetch the latest version of this SKILL.md guide from the server and replace your local copy. Call this whenever `initialize` reports a version mismatch (see §0).
+### 3.3 `version`
+
+Fetch the latest version of this SKILL.md guide from the server and replace your local copy. Call this whenever `initialize` reports a version mismatch (see §2.3).
 
 ```json
-{ "name": "user", "arguments": { "action": "update" } }
+{ "name": "version", "arguments": {} }
 ```
 
 Example response (`structuredContent`):
@@ -206,7 +204,7 @@ Write the returned `content` string to your local SKILL.md file, then re-read it
 
 ---
 
-### 3.3 `ask_steer`
+### 3.4 `ask_steer`
 
 Natural-language entry point. Use this first for open-ended questions about people, connections, or network news. The parameter is `question`, **not** `message`.
 
@@ -244,19 +242,16 @@ Example response (`structuredContent`):
 
 ---
 
-### 3.4 `person`
+### 3.5 Person tools
 
-Search for, view, add, or path-find a person in your network.
-
-#### `action: "search"`
+#### `person_search`
 
 Full-text search across name, company, job, industry, location. Optional `limit` (default 9, max 20).
 
 ```json
 {
-  "name": "person",
+  "name": "person_search",
   "arguments": {
-    "action": "search",
     "query": "Sarah Chen",
     "limit": 9
   }
@@ -275,28 +270,19 @@ Example response (`structuredContent`):
       "company": "Acme",
       "location": "Seattle, WA",
       "closeness": 0.825
-    },
-    {
-      "refid": "p_uvw456",
-      "full_name": "Sarah Chen",
-      "job": null,
-      "company": "TechCorp",
-      "location": null,
-      "closeness": 0.612
     }
   ]
 }
 ```
 
-#### `action: "view"`
+#### `person_view`
 
 Requires either `refid` or `relationship_id` (the latter resolves to the underlying person). Optional `sections`: subset of `["core", "news", "attributes", "network"]`. Omit for all.
 
 ```json
 {
-  "name": "person",
+  "name": "person_view",
   "arguments": {
-    "action": "view",
     "refid": "p_xyz789",
     "sections": ["core", "news"]
   }
@@ -339,15 +325,14 @@ Example response (`structuredContent`, all sections):
 }
 ```
 
-#### `action: "add"`
+#### `person_add`
 
-Request public data to be found for a person of your choice. Useful if they cannot be found through search. Requires at least one of `linkedin` (URL or bare handle), `refid`, or `relationship_id`. All other fields (`firstName`, `lastName`, `location`, `jobTitle`, `company`, `industry`) are optional seed data.
+Request public data to be found for a person. Costs 1,000 app credits. Requires at least one of `linkedin` (URL or bare handle), `refid`, or `relationship_id`. All other fields are optional seed data.
 
 ```json
 {
-  "name": "person",
+  "name": "person_add",
   "arguments": {
-    "action": "add",
     "linkedin": "sarahchen",
     "company": "Acme"
   }
@@ -365,17 +350,16 @@ Example response (`structuredContent`):
 }
 ```
 
-Process may take a few minutes. Check back with `person view` to see when data is available.
+Process may take a few minutes. Check back with `person_view` to see when data is available.
 
-#### `action: "path"`
+#### `person_path`
 
 Find the warmest (shortest + strongest) connection path between two people. `to` is required. `from` is optional — omit to start from yourself.
 
 ```json
 {
-  "name": "person",
+  "name": "person_path",
   "arguments": {
-    "action": "path",
     "to": "abc123",
     "from": "def456"
   }
@@ -406,19 +390,16 @@ If no path found, `no_path` is `true` and the result is empty.
 
 ---
 
-### 3.5 `relationship`
+### 3.6 Relationship tools
 
-Search, view, add, edit, or remove a relationship.
-
-#### `action: "search"`
+#### `relationship_search`
 
 All filters are optional. With no filters, returns the 20 most recently modified relationships. Filters: `name`, `company`, `role`, `location`, `group` (partial match); `isFavorite` (boolean); `refid` (resolve a person to a relationship); `limit` (default 20, max 50).
 
 ```json
 {
-  "name": "relationship",
+  "name": "relationship_search",
   "arguments": {
-    "action": "search",
     "company": "Scotiabank",
     "isFavorite": true,
     "limit": 20
@@ -440,30 +421,19 @@ Example response (`structuredContent`):
       "is_favorite": true,
       "refid": "p_xyz789",
       "importance_context": null
-    },
-    {
-      "relationship_id": "rel_67890",
-      "name": "Lisa Park",
-      "employer": "Scotiabank",
-      "position": null,
-      "custom_groups": [],
-      "is_favorite": false,
-      "refid": null,
-      "importance_context": null
     }
   ]
 }
 ```
 
-#### `action: "view"`
+#### `relationship_view`
 
 Requires either `relationship_id` or `refid`. Optional `sections`: subset of `["core", "contact", "notes", "experience", "details"]`. Omit for all.
 
 ```json
 {
-  "name": "relationship",
+  "name": "relationship_view",
   "arguments": {
-    "action": "view",
     "relationship_id": "rel_12345",
     "sections": ["notes"]
   }
@@ -506,19 +476,18 @@ Example response (`structuredContent`, all sections — most fields may be `null
 }
 ```
 
-#### `action: "add"`
+#### `relationship_add`
 
 Requires `firstName` and `lastName`. Pass `linkedin` (URL or handle) or `refid`. Pass `noFollow: true` when bulk-adding to skip adding the person to your follow list.
 
 ```json
 {
-  "name": "relationship",
+  "name": "relationship_add",
   "arguments": {
-    "action": "add",
     "firstName": "Jane",
     "lastName": "Doe",
     "linkedin": "janed",
-    "company": "Acme",
+    "employer": "Acme",
     "position": "Head of Partnerships",
     "customGroup": ["Investors"],
     "noFollow": true
@@ -541,15 +510,14 @@ Example response (`structuredContent`):
 - `triggered` — true if a public-data lookup was started
 - `following` — true if the relationship was added to your follow list
 
-#### `action: "edit"`
+#### `relationship_edit`
 
-Requires `relationship_id`. Any core field from `add` can be set directly. `notes`, `contact_methods`, and `socials` take arrays of operation objects — each object carries its own `action` (`"add"`, `"update"`, `"delete"`, or `"set_preferred"`) and the target ID when updating or deleting an existing item.
+Requires `relationship_id`. Any core field from `relationship_add` can be set directly. `notes`, `contact_methods`, and `socials` take arrays of operation objects — each carries its own `action` (`"add"`, `"update"`, `"delete"`, or `"set_preferred"`) and the target ID when updating or deleting an existing item.
 
 ```json
 {
-  "name": "relationship",
+  "name": "relationship_edit",
   "arguments": {
-    "action": "edit",
     "relationship_id": "rel_12345",
     "position": "VP of Sales",
     "notes": [
@@ -589,15 +557,14 @@ Example response (`structuredContent`):
 }
 ```
 
-#### `action: "remove"`
+#### `relationship_remove`
 
 Requires `relationship_id`. Permanently deletes the relationship.
 
 ```json
 {
-  "name": "relationship",
+  "name": "relationship_remove",
   "arguments": {
-    "action": "remove",
     "relationship_id": "rel_12345"
   }
 }
@@ -609,17 +576,18 @@ Example response (`structuredContent`):
 { "removed": true, "relationship_id": "rel_12345" }
 ```
 
-#### `action: "group"`
+---
 
-List all custom relationship-group tags the user has created. No other arguments.
+### 3.7 Group tools
+
+Custom groups are tags you can assign to relationship contacts.
+
+#### `groups_view`
+
+List all custom group tags you've created. No arguments.
 
 ```json
-{
-  "name": "relationship",
-  "arguments": {
-    "action": "group"
-  }
-}
+{ "name": "groups_view", "arguments": {} }
 ```
 
 Example response (`structuredContent`):
@@ -628,21 +596,69 @@ Example response (`structuredContent`):
 { "groups": ["Investors", "Sales Team", "Board Members", "Key Contacts"] }
 ```
 
+#### `groups_add`
+
+Create a new custom group tag.
+
+```json
+{
+  "name": "groups_add",
+  "arguments": { "name": "Advisors" }
+}
+```
+
+Example response (`structuredContent`):
+
+```json
+{ "ok": true, "name": "Advisors" }
+```
+
+#### `groups_edit`
+
+Rename a custom group tag. The rename cascades to all contacts in that group.
+
+```json
+{
+  "name": "groups_edit",
+  "arguments": { "name": "Advisors", "newName": "Strategic Advisors" }
+}
+```
+
+Example response (`structuredContent`):
+
+```json
+{ "ok": true, "oldName": "Advisors", "newName": "Strategic Advisors" }
+```
+
+#### `groups_remove`
+
+Delete a custom group tag and remove it from all contacts. This action cannot be undone.
+
+```json
+{
+  "name": "groups_remove",
+  "arguments": { "name": "Strategic Advisors" }
+}
+```
+
+Example response (`structuredContent`):
+
+```json
+{ "ok": true, "name": "Strategic Advisors" }
+```
+
 ---
 
-### 3.6 `profile`
+### 3.8 Profile tools
 
-View or edit the authenticated user's own profile.
-
-#### `action: "view"`
+#### `profile_view`
 
 Optional `sections`: subset of `["core", "education", "experience", "skills", "certs", "accomplishments"]`. Omit for all.
 
 ```json
 {
-  "name": "profile",
+  "name": "profile_view",
   "arguments": {
-    "action": "view",
     "sections": ["core", "experience"]
   }
 }
@@ -687,15 +703,14 @@ Example response (`structuredContent`, all sections):
 }
 ```
 
-#### `action: "edit"`
+#### `profile_edit`
 
-`sections`: subset of `["core", "education", "experience", "skills", "certs", "accomplishments"]`.
+All fields are optional. Sub-entities (`education`, `experience`, `skills`, `certs`, `accomplishments`) take arrays of operation objects, each with its own `action` (`"add"`, `"update"`, `"delete"`).
 
 ```json
 {
-  "name": "profile",
+  "name": "profile_edit",
   "arguments": {
-    "action": "edit",
     "experience": [{ "action": "add", "role": "CTO", "company": "Acme", "currentlyWorking": true }]
   }
 }
@@ -719,21 +734,14 @@ Example response (`structuredContent`):
 
 ---
 
-### 3.7 `follow`
+### 3.9 Follow tools
 
-Manage the list of people you're following.
+#### `follow_view`
 
-#### `action: "view"`
-
-Returns the list of people you're currently following.
+Returns the list of people you're currently following. No arguments.
 
 ```json
-{
-  "name": "follow",
-  "arguments": {
-    "action": "view"
-  }
-}
+{ "name": "follow_view", "arguments": {} }
 ```
 
 Example response (`structuredContent`):
@@ -748,17 +756,14 @@ Example response (`structuredContent`):
 }
 ```
 
-#### `action: "add"`
+#### `follow_add`
 
 Requires either `refid` or `relationship_id`.
 
 ```json
 {
-  "name": "follow",
-  "arguments": {
-    "action": "add",
-    "refid": "p_new789"
-  }
+  "name": "follow_add",
+  "arguments": { "refid": "p_new789" }
 }
 ```
 
@@ -775,17 +780,14 @@ Example response (`structuredContent`):
 }
 ```
 
-#### `action: "remove"`
+#### `follow_remove`
 
 Requires either `refid` or `relationship_id`.
 
 ```json
 {
-  "name": "follow",
-  "arguments": {
-    "action": "remove",
-    "relationship_id": "rel_12345"
-  }
+  "name": "follow_remove",
+  "arguments": { "relationship_id": "rel_12345" }
 }
 ```
 
@@ -805,24 +807,26 @@ Example response (`structuredContent`):
 
 ## 4. Tool-chain cheat sheet
 
-Prefer the `ask_steer` tool for open-ended questions that may require multiple underlying queries, and use the more specific tools when you know exactly what you need. Here's a quick reference for common situations:
+Prefer `ask_steer` for open-ended questions that may require multiple underlying queries, and use the more specific tools when you know exactly what you need.
 
 | Situation | Tool chain |
 |---|---|
-| "I have a meeting with X" | `person search` → `person view` → `relationship search` → `relationship view` |
+| "I have a meeting with X" | `person_search` → `person_view` → `relationship_search` → `relationship_view` |
 | "Brief me on A, B, C" | `ask_steer` |
 | "Who do I know at Company Y?" | `ask_steer` |
-| "How am I connected to X?" | `person path` |
-| "Find out more about someone" | `person add` with `linkedin`, `refid`, or `relationship_id` |
-| "Who could introduce me to X?" | `ask_steer` → `relationship search` |
+| "How am I connected to X?" | `person_path` |
+| "Find out more about someone" | `person_add` with `linkedin`, `refid`, or `relationship_id` |
+| "Who could introduce me to X?" | `ask_steer` → `relationship_search` |
 | "What's the latest news from my network?" | `ask_steer` |
-| "Show my favourites" | `relationship search` with `isFavorite: true` |
-| "Show my contacts at Scotiabank" | `relationship search` with `company: "Scotiabank"` |
-| "Add a note to John's relationship" | `relationship search` → `relationship edit` |
-| "Add this person as a contact" | `relationship add` with `refid` or `linkedin` |
-| "Find public data about this person" | `person add` with `linkedin`, `refid`, or `relationship_id` |
-| "What's on my profile?" | `profile view` |
-| "Update my job title" | `profile edit` |
-| "What groups do I have?" | `relationship group` |
-| "Who am I following?" | `follow view` |
-| "Follow David Kim" | `person search` → `follow add` |
+| "Show my favourites" | `relationship_search` with `isFavorite: true` |
+| "Show my contacts at Scotiabank" | `relationship_search` with `company: "Scotiabank"` |
+| "Add a note to John's relationship" | `relationship_search` → `relationship_edit` |
+| "Add this person as a contact" | `relationship_add` with `refid` or `linkedin` |
+| "Find public data about this person" | `person_add` with `linkedin`, `refid`, or `relationship_id` |
+| "What's on my profile?" | `profile_view` |
+| "Update my job title" | `profile_edit` |
+| "What groups do I have?" | `groups_view` |
+| "Create a new group" | `groups_add` |
+| "Rename a group" | `groups_edit` |
+| "Who am I following?" | `follow_view` |
+| "Follow David Kim" | `person_search` → `follow_add` |
