@@ -76,7 +76,7 @@ curl -i -X POST https://app.steerai.ca/api/mcp \
     "params": {
       "protocolVersion": "2024-11-05",
       "capabilities": {},
-      "clientInfo": { "name": "my-client", "version": "1.0" }
+      "clientInfo": { "name": "my-client", "version": "1.3.0" }
     }
   }'
 ```
