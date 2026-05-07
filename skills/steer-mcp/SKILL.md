@@ -19,7 +19,7 @@ Steer is a relationship-intelligence API exposed as an MCP server
    3.2 usage
    3.3 version
    3.4 ask_steer
-   3.5 person_search, person_view, person_add, person_path
+   3.5 person_search, person_view, person_research, person_path
    3.6 relationship_search, relationship_view, relationship_add, relationship_edit, relationship_remove
    3.7 groups_view, groups_add, groups_edit, groups_remove
    3.8 profile_view, profile_edit
@@ -32,7 +32,7 @@ Steer is a relationship-intelligence API exposed as an MCP server
 Tools across three groups:
 
 - **System** — `initialize`, `usage`, `version`
-- **Relationship Intelligence** `ask_steer`, `person_search`, `person_view`, `person_add`, `person_path`
+- **Relationship Intelligence** `ask_steer`, `person_search`, `person_view`, `person_research`, `person_path`
 - **Relationship Management** `relationship_search`, `relationship_view`, `relationship_add`, `relationship_edit`, `relationship_remove`, `groups_view`, `groups_add`, `groups_edit`, `groups_remove`, `follow_view`, `follow_add`, `follow_remove`, `profile_view`, `profile_edit`
 
 Every request is a JSON-RPC 2.0 call to a single endpoint. A session ID is issued on `initialize` and required on every subsequent call.
@@ -117,7 +117,7 @@ curl -N -X POST https://app.steerai.ca/api/mcp \
 - If the versions match: proceed normally.
 
 ```
-Current version: 1.3.0
+Current version: 1.3.1
 ```
 
 After replacing the file, re-read it before proceeding.
@@ -325,13 +325,13 @@ Example response (`structuredContent`, all sections):
 }
 ```
 
-#### `person_add`
+#### `person_research`
 
 Request public data to be found for a person. Costs 1,000 app credits. Requires at least one of `linkedin` (URL or bare handle), `refid`, or `relationship_id`. All other fields are optional seed data.
 
 ```json
 {
-  "name": "person_add",
+  "name": "person_research",
   "arguments": {
     "linkedin": "sarahchen",
     "company": "Acme"
@@ -815,14 +815,14 @@ Prefer `ask_steer` for open-ended questions that may require multiple underlying
 | "Brief me on A, B, C" | `ask_steer` |
 | "Who do I know at Company Y?" | `ask_steer` |
 | "How am I connected to X?" | `person_path` |
-| "Find out more about someone" | `person_add` with `linkedin`, `refid`, or `relationship_id` |
+| "Find out more about someone" | `person_research` with `linkedin`, `refid`, or `relationship_id` |
 | "Who could introduce me to X?" | `ask_steer` → `relationship_search` |
 | "What's the latest news from my network?" | `ask_steer` |
 | "Show my favourites" | `relationship_search` with `isFavorite: true` |
 | "Show my contacts at Scotiabank" | `relationship_search` with `company: "Scotiabank"` |
 | "Add a note to John's relationship" | `relationship_search` → `relationship_edit` |
 | "Add this person as a contact" | `relationship_add` with `refid` or `linkedin` |
-| "Find public data about this person" | `person_add` with `linkedin`, `refid`, or `relationship_id` |
+| "Find public data about this person" | `person_research` with `linkedin`, `refid`, or `relationship_id` |
 | "What's on my profile?" | `profile_view` |
 | "Update my job title" | `profile_edit` |
 | "What groups do I have?" | `groups_view` |
