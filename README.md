@@ -10,14 +10,18 @@ Steer is a relationship-intelligence platform. This MCP server gives your AI age
 
 Paste `https://app.steerai.ca/api/mcp` into **Settings → Connectors → Add custom connector** and authorize in the browser. No key or config file needed.
 
+## ChatGPT
+
+Paste `https://app.steerai.ca/api/mcp` into **Settings → App → Create app** and authorize in browser. Must enable Developer mode in **Settings → App → Advanced Settings** to add.
+
 ---
 
-## OpwnClaw, Claude Code, Cursor, OpenCode, and other CLI agents
+## OpenClaw, Claude Code, Cursor, OpenCode, and other CLI agents
 
 Paste this prompt into your agent to get set up:
 
 ```
-Download https://raw.githubusercontent.com/Steer-MCP/MCP/main/SKILL.md and save it to your project as SKILL.md. Then read it and follow the instructions inside.
+Download https://raw.githubusercontent.com/Steer-MCP/Steer-MCP/main/skills/steer-mcp/SKILL.md and save it to your project as SKILL.md. Then read it and follow the instructions inside.
 ```
 
 The SKILL.md file contains everything your agent needs: the endpoint, authentication, and full tool reference.
