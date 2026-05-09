@@ -117,7 +117,7 @@ curl -N -X POST https://app.steerai.ca/api/mcp \
 - If the versions match: proceed normally.
 
 ```
-Current version: 1.3.1
+Current version: 1.3.2
 ```
 
 After replacing the file, re-read it before proceeding.
@@ -723,8 +723,8 @@ Example response (`structuredContent`):
 {
   "action": "check",
   "following": [
-    { "refid": "p_abc123", "person_name": "Sarah Chen" },
-    { "refid": "p_def456", "person_name": "Mike Johnson" }
+    { "relationship_id": "rel_11111", "person_name": "Sarah Chen" },
+    { "relationship_id": "rel_22222", "person_name": "Mike Johnson" }
   ]
 }
 ```
@@ -746,10 +746,10 @@ Example response (`structuredContent`):
 {
   "action": "add",
   "following": [
-    { "refid": "p_abc123", "person_name": "Sarah Chen" },
-    { "refid": "p_new789", "person_name": "Alex Rodriguez" }
+    { "relationship_id": "rel_11111", "person_name": "Sarah Chen" },
+    { "relationship_id": "rel_54321", "person_name": "Alex Rodriguez" }
   ],
-  "added": { "refid": "p_new789", "person_name": "Alex Rodriguez" }
+  "added": { "relationship_id": "rel_54321", "person_name": "Alex Rodriguez" }
 }
 ```
 
@@ -760,7 +760,7 @@ Requires `relationship_id`.
 ```json
 {
   "name": "follow_remove",
-  "arguments": { "relationship_id": "rel_12345" }
+  "arguments": { "relationship_id": "rel_22222" }
 }
 ```
 
@@ -770,9 +770,9 @@ Example response (`structuredContent`):
 {
   "action": "remove",
   "following": [
-    { "refid": "p_abc123", "person_name": "Sarah Chen" }
+    { "relationship_id": "rel_11111", "person_name": "Sarah Chen" }
   ],
-  "removed": { "refid": "p_def456", "person_name": "Mike Johnson" }
+  "removed": { "relationship_id": "rel_22222", "person_name": "Mike Johnson" }
 }
 ```
 
