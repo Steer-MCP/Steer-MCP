@@ -117,7 +117,7 @@ curl -N -X POST https://app.steerai.ca/api/mcp \
 - If the versions match: proceed normally.
 
 ```
-Current version: 1.3.2
+Current version: 1.3.3
 ```
 
 After replacing the file, re-read it before proceeding.
@@ -474,14 +474,9 @@ Example response (`structuredContent`):
 {
   "success": true,
   "relationship_id": "rel_54321",
-  "name": "Jane Doe",
-  "triggered": true,
-  "following": false
+  "name": "Jane Doe"
 }
 ```
-
-- `triggered` — true if a public-data lookup was started
-- `following` — true if the relationship was added to your follow list
 
 #### `relationship_edit`
 
@@ -731,13 +726,14 @@ Example response (`structuredContent`):
 
 #### `follow_add`
 
-Requires `relationship_id`. Only saved relationships can be followed.
+Provide either `relationship_id` or `refid`.
 
 ```json
-{
-  "name": "follow_add",
-  "arguments": { "relationship_id": "rel_54321" }
-}
+{ "name": "follow_add", "arguments": { "relationship_id": "rel_54321" } }
+```
+
+```json
+{ "name": "follow_add", "arguments": { "refid": "p_abc123" } }
 ```
 
 Example response (`structuredContent`):
@@ -755,13 +751,14 @@ Example response (`structuredContent`):
 
 #### `follow_remove`
 
-Requires `relationship_id`.
+Provide either `relationship_id` or `refid`.
 
 ```json
-{
-  "name": "follow_remove",
-  "arguments": { "relationship_id": "rel_22222" }
-}
+{ "name": "follow_remove", "arguments": { "relationship_id": "rel_22222" } }
+```
+
+```json
+{ "name": "follow_remove", "arguments": { "refid": "p_xyz789" } }
 ```
 
 Example response (`structuredContent`):
