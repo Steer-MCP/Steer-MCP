@@ -295,6 +295,7 @@ Example response (`structuredContent`, all sections):
 {
   "refid": "p_xyz789",
   "full_name": "Sarah Chen",
+  "image_url": "https://example.com/sarahchen.jpg",
   "job": "VP Engineering",
   "company": "Acme",
   "location": "Seattle, WA",
